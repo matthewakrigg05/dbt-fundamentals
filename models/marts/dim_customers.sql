@@ -33,6 +33,32 @@ customer_orders as (
 
 ),
 
+payments as (
+
+    select
+        p.payment_id,
+        p.order_id,
+        p.amount
+
+    from {{ ref('stg__stripe__payments') }} p
+
+    where p.status = 'success'
+
+),
+
+customer_payments as (
+
+    select
+        o.customer_id,
+        sum(p.amount) as lifetime_value
+
+    from orders o
+    join payments p on o.order_id = p.order_id
+
+    group by 1
+
+),
+
 
 final as (
 
@@ -40,6 +66,7 @@ final as (
         customers.customer_id,
         customers.first_name,
         customers.last_name,
+        coalesce(customer_payments.lifetime_value, 0) as lifetime_value,
         customer_orders.first_order_date,
         customer_orders.most_recent_order_date,
         coalesce(customer_orders.number_of_orders, 0) as number_of_orders
@@ -47,6 +74,7 @@ final as (
     from customers
 
     left join customer_orders using (customer_id)
+    left join customer_payments using (customer_id)
 
 )
 
