@@ -18,64 +18,82 @@ orders as (
 
 ),
 
-customer_orders as (
+customer_orders AS (
 
-    select
-        customer_id,
+    SELECT
+        customer_id
+        , MIN(order_date) AS first_order_date
+        , MAX(order_date) AS most_recent_order_date
+        , COUNT(order_id) AS number_of_orders
 
-        min(order_date) as first_order_date,
-        max(order_date) as most_recent_order_date,
-        count(order_id) as number_of_orders
+    FROM 
+        orders
 
-    from orders
-
-    group by 1
-
-),
-
-payments as (
-
-    select
-        p.payment_id,
-        p.order_id,
-        p.amount
-
-    from {{ ref('stg__stripe__payments') }} p
-
-    where p.status = 'success'
+    GROUP BY 1
 
 ),
 
-customer_payments as (
+payments AS (
 
-    select
-        o.customer_id,
-        sum(p.amount) as lifetime_value
+    SELECT
+        p.payment_id
+        , p.order_id
+        , p.amount
 
-    from orders o
-    join payments p on o.order_id = p.order_id
+    FROM 
+        {{ ref('stg__stripe__payments') }} p
 
-    group by 1
+    WHERE 
+        p.status = 'success'
+
+),
+
+customer_payments AS (
+
+    SELECT
+        o.customer_id
+        , SUM(p.amount) AS lifetime_value
+
+    FROM 
+        orders o
+    
+    JOIN 
+        payments p 
+    ON
+        o.order_id = p.order_id
+
+    GROUP BY 1
 
 ),
 
 
-final as (
+final AS (
 
-    select
-        customers.customer_id,
-        customers.first_name,
-        customers.last_name,
-        coalesce(customer_payments.lifetime_value, 0) as lifetime_value,
-        customer_orders.first_order_date,
-        customer_orders.most_recent_order_date,
-        coalesce(customer_orders.number_of_orders, 0) as number_of_orders
+    SELECT
+        c.customer_id
+        , c.first_name
+        , c.last_name
+        , COALESCE(cp.lifetime_value, 0) AS lifetime_value
+        , co.first_order_date
+        , co.most_recent_order_date
+        , COALESCE(co.number_of_orders, 0) AS number_of_orders
 
-    from customers
+    FROM 
+        customers c
 
-    left join customer_orders using (customer_id)
-    left join customer_payments using (customer_id)
+    LEFT JOIN 
+        customer_orders co
+    USING 
+        (customer_id)
+    
+    LEFT JOIN 
+        customer_payments cp
+    USING 
+        (customer_id)
 
 )
 
-select * from final
+SELECT 
+    * 
+FROM 
+    final
