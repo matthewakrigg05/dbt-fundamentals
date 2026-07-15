@@ -7,4 +7,4 @@ SELECT
     , created AS created_at
 
 FROM
-    raw.stripe.payments
+    {{ source('stripe', 'payments') }}

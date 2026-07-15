@@ -1,10 +1,9 @@
 sources:
-  - name: jaffle_shop
+  - name: stripe
     database: raw
-    schema: jaffle_shop
+    schema: stripe
     tables: 
-      - name: customers
-      - name: orders
+      - name: payments
         config:
           freshness:
             warn_after: {count: 24, period: hour}
