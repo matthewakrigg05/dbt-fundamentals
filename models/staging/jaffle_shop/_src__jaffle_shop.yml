@@ -2,10 +2,20 @@ sources:
   - name: jaffle_shop
     database: raw
     schema: jaffle_shop
-    tables: 
+    tables:
       - name: customers
+        columns:
+          - name: id
+            description: primary key
+            data_tests:
+              - unique
+              - not_null        
       - name: orders
         config:
           freshness:
-            warn_after: {count: 24, period: hour}
-            error_after: {count: 48, period: hour}
+            warn_after:
+              count: 24
+              period: hour
+            error_after:
+              count: 48
+              period: hour

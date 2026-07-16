@@ -1,12 +1,12 @@
 models:
-  - name: stg_jaffle_shop__customers
+  - name: stg__jaffle_shop__customers
     columns:
       - name: customer_id
         data_tests:
           - unique
           - not_null
 
-  - name: stg_jaffle_shop__orders
+  - name: stg__jaffle_shop__orders
     columns:
       - name: order_id
         data_tests:
@@ -21,5 +21,5 @@ models:
         data_tests:
           - relationships:
               arguments:
-                to: ref('stg_jaffle_shop__customers')
+                to: ref('stg__jaffle_shop__customers')
                 field: customer_id
